@@ -5,56 +5,67 @@ from typing import List, Dict, Tuple
 app = Flask(__name__)
 
 # =========================
-# Constantes e utilidades
+# Regras base
 # =========================
 PILLARS = {
     "funcionais": ["segurança","controle","desempenho","conveniência","otimização","cuidado"],
-    "experienciais": ["hedonismo","convivio","transformacionais","criadoras","capacitadoras","sensoriais"],
+    "experienciais": ["hedonismo","convívio","transformacionais","criadoras","capacitadoras","sensoriais"],
     "sociais": ["superioridade","conformidade","tribais","reconhecimento","qualificação","conexão"],
-    "expressao": ["personalidade","individualidade","independência","vanguarda","engajamento","visao_de_mundo"],
-    "realizacao": ["unicidade","inspiração","transcendência","vitalidade","realização","auto-afirmação"],
+    "expressão": ["personalidade","individualidade","independência","vanguarda","engajamento","visão de mundo"],
+    "realização": ["unicidade","inspiração","transcendência","vitalidade","realização","auto-afirmação"],
 }
 
-# Palavras-chave simplificadas para classificar M1
+# Palavras-chave por sub-benefício (pizzaria + genéricos). Ajuste/expanda à vontade.
 M1_KEYWORDS = [
     # FUNCIONAIS
     (["whatsapp","app","pedido","pagamento","pix","cartão","cartao","todos os dias",
-      "semi-pronta","semipronta","pizza store","entrega rápida","delivery rápido","varios meios de pagamento","muitos meios de pagamento"],
+      "semi-pronta","semipronta","pizza store","entrega rápida","delivery rápido","rastreamento","status","avisamos","a caminho"],
      ("funcionais","conveniência")),
-    (["rastreamento","status","avisamos","a caminho","acompanhe","notificação"],
-     ("funcionais","controle")),
-    (["qualidade","massa","forno","fermentação","processo","padrão","padrao","insumos"],
+    (["rastreamento","status","avisamos","acompanhe","notificação"], ("funcionais","controle")),
+    (["qualidade","massa","fermentação","fermentacao","forno","processo","padrão","padrao","insumos","san marzano","napolitana","longa maturação","longa maturacao"],
      ("funcionais","desempenho")),
-    (["pet friendly","pet-friendly","petfriendly"], ("funcionais","cuidado")),
+    (["pet friendly","pet-friendly","petfriendly","cuidado"], ("funcionais","cuidado")),
+    (["otimização","otimizacao","agilidade","eficiência","eficiencia"], ("funcionais","otimização")),
+    (["segurança","seguro","confiável","confiavel"], ("funcionais","segurança")),
 
     # EXPERIENCIAIS
-    (["evento","eventos","serviço de eventos","levamos a experiência","no seu evento",
-      "preparadas na hora","ao vivo"],
+    (["evento","eventos","serviço de eventos","levamos a experiência","preparadas na hora","ao vivo"],
      ("experienciais","capacitadoras")),
-    (["sabor","ingrediente","mozzarella de búfala","alho negro","pera","gorgonzola","pepperoni","textura","aroma"],
+    (["sabor","ingrediente","mozzarella de búfala","alho negro","pera","gorgonzola","pepperoni","textura","aroma","cornicione"],
      ("experienciais","sensoriais")),
-    (["experiência única","inesquecível","momento inesquecível","prazer"],
+    (["experiência única","inesquecível","prazer","delícia","memória","memoria","desejo"],
      ("experienciais","hedonismo")),
+    (["convivio","convívio","familiar","amigos","família","familia","acolhedor","acolhimento"],
+     ("experienciais","convívio")),
+    (["criamos","autoral","autorais","edição limitada","sazonal"],
+     ("experienciais","criadoras")),
+    (["transforma","transformacional","descoberta","aprendizado"],
+     ("experienciais","transformacionais")),
 
     # SOCIAIS
-    (["mais desejada","prêmio","premio","selo","imprensa","matéria","ranking","destaque"],
+    (["mais desejada","prêmio","premio","selo","imprensa","matéria","ranking","destaque","influenciador"],
      ("sociais","reconhecimento")),
-    (["memória","memorável","compartilhar","comunidade","hashtag","ugc"],
-     ("sociais","conexão")),
+    (["comunidade","grupo","pertencer","club","tribo","tribal"], ("sociais","tribais")),
+    (["conexão","compartilhar","marcar","ugc","hashtag"], ("sociais","conexão")),
+    (["superior","topo","elite","premium"], ("sociais","superioridade")),
+    (["conforme","padrão do setor","obrigatório"], ("sociais","conformidade")),
+    (["certificação","qualificado","qualificação"], ("sociais","qualificação")),
 
     # EXPRESSÃO
-    (["reels","conteúdo","conteudo","promoção","siga o perfil","siga-nos","seguir"],
-     ("expressao","engajamento")),
-    (["manifesto","posicionamento","visão de mundo","visao de mundo","proposito","propósito"],
-     ("expressao","visao_de_mundo")),
+    (["reels","conteúdo","conteudo","promoção","siga","seguir","call to action"],
+     ("expressão","engajamento")),
+    (["manifesto","posicionamento","visão de mundo","proposito","propósito","vanguarda","independência","individualidade","personalidade"],
+     ("expressão","visão de mundo")),
 
     # REALIZAÇÃO
-    (["massa leve","levíssima","digestível","saudável","leveza"],
-     ("realizacao","vitalidade")),
-    (["experiência","experiencia","memória","memoria","família","amigos","inspiração","inspirador"],
-     ("realizacao","inspiração")),
-    (["secreta","exclusiva","unicidade","bairro charmoso","surpreendentes","surpreendente"],
-     ("realizacao","unicidade")),
+    (["massa leve","levíssima","digestível","saudável","leveza","vitalidade"],
+     ("realização","vitalidade")),
+    (["inspiração","inspirador","orgulho","autoestima","auto-afirmação","auto afirmacao"],
+     ("realização","inspiração")),
+    (["única","secreta","exclusiva","unicidade","bairro charmoso","surpreendente"],
+     ("realização","unicidade")),
+    (["transcendência","transcendencia","superação"], ("realização","transcendência")),
+    (["realização pessoal","objetivo atingido"], ("realização","realização")),
 ]
 
 def classify_snippet(text: str) -> Tuple[str, str]:
@@ -62,15 +73,15 @@ def classify_snippet(text: str) -> Tuple[str, str]:
     for keys, tag in M1_KEYWORDS:
         if any(k in t for k in keys):
             return tag
-    return ("funcionais","conveniência")  # fallback conservador
+    # fallback bem conservador
+    return ("funcionais","conveniência")
 
-def ensure(val, default):  # strings ou listas
+def ensure(val, default):
     if isinstance(val, str):
         return val if val.strip() else default
     if isinstance(val, list):
         return val if len(val) > 0 else default
     return val if val else default
-
 
 # =========================
 # Health
@@ -79,50 +90,41 @@ def ensure(val, default):  # strings ou listas
 def health():
     return jsonify({"ok": True, "service": "brand-matrix"}), 200
 
-
 # =========================
-# M0 — Pesquisa (normalização)
+# M0 — Pesquisa (cliente/GPT faz a busca; aqui só normaliza)
 # =========================
 @app.post("/m0-pesquisa")
 def m0_pesquisa():
     """
     Espera:
     {
-      "brand": "Arte della Pizza",
-      "category": "Pizzarias artesanais - Zona Oeste SP",
+      "brand": "...",
+      "category": "...",
       "findings": [
-         {"text": "...", "source_type":"website|instagram|facebook|maps|news|menu|app",
-          "source_name":"ARTEDELAPIZZA", "url":"https://..."}
+        { "text": "...", "source_type":"website|instagram|facebook|maps|news|menu|app",
+          "source_name":"...", "url":"https://...", "captured_at":"2025-10-03" }
       ]
     }
-    Retorna findings normalizados + fontes obrigatórias que ficaram faltando.
     """
     b = request.get_json(silent=True) or {}
-    brand = b.get("brand","")
-    category = b.get("category","")
+    brand = b.get("brand",""); category = b.get("category","")
     findings = b.get("findings") or []
-
     normalized = []
-    must_sources = ["website","instagram","facebook","maps"]  # dá pra ampliar (news, menu, app…)
-    seen_types = set()
+    must = ["website","instagram","facebook","maps"]
+    seen = set()
 
     for f in findings:
         txt = ensure((f or {}).get("text","").strip(), "")
         if not txt:
             continue
-        stype = ((f or {}).get("source_type","") or "").lower()
-        sname = ensure((f or {}).get("source_name","").strip(), "N/A")
-        url   = ensure((f or {}).get("url","").strip(), "")
-        normalized.append({
-            "text": txt,
-            "source_type": stype or "unknown",
-            "source_name": sname,
-            "url": url
-        })
-        if stype:
-            seen_types.add(stype)
+        st = (f or {}).get("source_type","").lower() or "unknown"
+        sn = ensure((f or {}).get("source_name","").strip(), "N/A")
+        url = ensure((f or {}).get("url","").strip(), "")
+        dt  = ensure((f or {}).get("captured_at","").strip(), "")
+        normalized.append({"text": txt, "source_type": st, "source_name": sn, "url": url, "captured_at": dt})
+        if st: seen.add(st)
 
-    missing_sources = [s for s in must_sources if s not in seen_types]
+    missing_sources = [s for s in must if s not in seen]
 
     return jsonify({
         "brand": brand,
@@ -130,9 +132,76 @@ def m0_pesquisa():
         "stage": "research",
         "evidence": normalized,
         "missing_sources": missing_sources,
-        "notes": "Servidor não pesquisa; o cliente (GPT) faz a busca e envia aqui."
+        "notes": "Servidor não navega; a coleta vem do cliente (GPT) e é normalizada aqui."
     }), 200
 
+# =========================
+# M0b — Competidores (normalização + base comparativa)
+# =========================
+@app.post("/m0-competidores")
+def m0_competidores():
+    """
+    Espera:
+    {
+      "brand": "...",
+      "category": "...",
+      "competitors_findings": [
+        { "competitor": "Concorrente A",
+          "findings": [ {"text":"...","source_type":"maps","source_name":"Google Maps","url":"...","captured_at":"..."} ]
+        }
+      ]
+    }
+    """
+    b = request.get_json(silent=True) or {}
+    brand = b.get("brand",""); category = b.get("category","")
+    comp = b.get("competitors_findings") or []
+
+    comps_norm = []
+    # normaliza
+    for c in comp:
+        name = ensure((c or {}).get("competitor","").strip(), "")
+        items = []
+        for f in (c or {}).get("findings") or []:
+            txt = ensure((f or {}).get("text","").strip(), "")
+            if not txt: continue
+            items.append({
+                "text": txt,
+                "source_type": (f or {}).get("source_type","").lower() or "unknown",
+                "source_name": ensure((f or {}).get("source_name","").strip(), "N/A"),
+                "url": ensure((f or {}).get("url","").strip(), ""),
+                "captured_at": ensure((f or {}).get("captured_at","").strip(), "")
+            })
+        if name and items:
+            comps_norm.append({"competitor": name, "evidence": items})
+
+    # base comparativa (apenas marca ✓/– por sub-benefício, sem “inventar”)
+    def classify_all(ev_list):
+        covered = defaultdict(set)
+        for ev in ev_list:
+            pillar, sub = classify_snippet(ev.get("text",""))
+            covered[pillar].add(sub)
+        return covered
+
+    comparison = []
+    for c in comps_norm:
+        covered = classify_all(c["evidence"])
+        rows = []
+        for pillar, subs in PILLARS.items():
+            for sub in subs:
+                rows.append({
+                    "pillar": pillar,
+                    "sub_benefit": sub,
+                    "found": sub in covered[pillar]
+                })
+        comparison.append({"competitor": c["competitor"], "matrix": rows})
+
+    return jsonify({
+        "brand": brand,
+        "category": category,
+        "stage": "competitors_research",
+        "competitors": comps_norm,
+        "comparison": comparison
+    }), 200
 
 # =========================
 # M1 — Matriz de Benefícios
@@ -143,49 +212,60 @@ def m1_beneficios():
     Espera:
     {
       "brand":"...", "scope":"...",
-      "evidence":[{"text":"...", "source_name":"...", "source_type":"...", "url":"..."}]
+      "evidence":[{"text":"...","source_name":"...","source_type":"...","url":"...","captured_at":"..."}],
+      "suggestions": [ {"text":"...","from":"category_pattern"} ]   # opcional
     }
     """
     body = request.get_json(silent=True) or {}
-    brand = body.get("brand","")
-    scope = body.get("scope","")
+    brand = body.get("brand",""); scope = body.get("scope","")
     evidences = body.get("evidence") or []
+    suggestions = body.get("suggestions") or []
 
     rows, covered = [], defaultdict(set)
     for ev in evidences:
         text = (ev or {}).get("text","").strip()
-        if not text:
-            continue
-        source_name = ensure((ev or {}).get("source_name","").strip(), "N/A")
-        source_type = ensure((ev or {}).get("source_type","").strip(), "unknown")
-        url = ensure((ev or {}).get("url","").strip(), "")
+        if not text: continue
         pillar, sub = classify_snippet(text)
-        rows.append({
+        row = {
             "pillar": pillar,
             "sub_benefit": sub,
             "evidence": text,
-            "source": source_name,
-            "source_type": source_type,
-            "url": url
-        })
+            "source": ensure((ev or {}).get("source_name","").strip(), "N/A"),
+            "source_type": ensure((ev or {}).get("source_type","").strip(), "unknown"),
+            "url": ensure((ev or {}).get("url","").strip(), ""),
+            "captured_at": ensure((ev or {}).get("captured_at","").strip(), ""),
+            "found": True,
+            "approved": False,   # a aprovação é do usuário, no GPT
+            "suggested": False
+        }
+        rows.append(row)
         covered[pillar].add(sub)
 
-    missing_subs = {
-        pillar: [s for s in subs if s not in covered[pillar]]
-        for pillar, subs in PILLARS.items()
-    }
+    # sugestões (sem evidência; aguardam aprovação explícita)
+    suggested_rows = []
+    for s in suggestions:
+        txt = ensure((s or {}).get("text","").strip(), "")
+        if not txt: continue
+        pillar, sub = classify_snippet(txt)
+        suggested_rows.append({
+            "pillar": pillar, "sub_benefit": sub,
+            "evidence": "", "source":"", "source_type":"", "url":"", "captured_at":"",
+            "found": False, "approved": False, "suggested": True, "suggested_from": (s or {}).get("from","")
+        })
+
+    missing_subs = { pillar: [s for s in subs if s not in covered[pillar]] for pillar, subs in PILLARS.items() }
 
     return jsonify({
         "brand": brand,
         "stage": "benefit_matrix",
-        "attributes": rows,              # linhas classificadas
-        "missing_subbenefits": missing_subs,  # checklist do que não apareceu
-        "notes": f"classificação automática M1 — escopo: {scope}"
+        "attributes": rows,                 # encontrados
+        "suggested": suggested_rows,        # sugeridos (pendentes)
+        "missing_subbenefits": missing_subs,
+        "notes": f"M1 classificada automaticamente — escopo: {scope}"
     }), 200
 
-
 # =========================
-# M2 — Uso × Relevância
+# M2 — Uso × Relevância (inclui não encontrados)
 # =========================
 @app.post("/m2-diferenciais")
 def m2_diferenciais():
@@ -193,68 +273,99 @@ def m2_diferenciais():
     Espera:
     {
       "brand":"...",
-      "from_m1":{
-        "attributes":[{ "pillar":"...", "sub_benefit":"...", "evidence":"...", "source":"...", "url":"..." }],
-        "missing_subbenefits": { "funcionais":[...], ... }
+      "from_m1": {
+        "attributes":[{...}], "suggested":[{...}], "missing_subbenefits":{...}
       },
-      "hints": { opcional, recomendações/observações do GPT }
+      "use_only_approved": true|false,
+      "from_competitors": { "comparison":[ {"competitor":"...", "matrix":[{pillar,sub_benefit,found}]} ] }  # opcional
     }
-    Saída: todos os sub-benefícios (os encontrados e os faltantes) com:
-    usage_level, relevance_level, recommendation, priority, found(bool), evidence(list)
     """
     b = request.get_json(silent=True) or {}
     brand = b.get("brand","")
     m1 = b.get("from_m1") or {}
-    attributes = m1.get("attributes") or []
+    attrs = m1.get("attributes") or []
+    suggested = m1.get("suggested") or []
     missing = m1.get("missing_subbenefits") or {}
+    only_approved = bool(b.get("use_only_approved", False))
 
-    # index por (pillar, sub)
-    idx = defaultdict(lambda: {"found": False, "evidence": []})
-    for a in attributes:
-        key = (a.get("pillar",""), a.get("sub_benefit",""))
-        idx[key]["found"] = True
-        idx[key]["evidence"].append({
-            "quote": a.get("evidence",""),
-            "source": a.get("source",""),
-            "url": a.get("url","")
-        })
+    # índice por (pillar,sub)
+    idx = {(a.get("pillar",""), a.get("sub_benefit","")): a for a in attrs}
+    sug_idx = {(s.get("pillar",""), s.get("sub_benefit","")): s for s in suggested}
 
-    # monta a lista completa (inclui faltantes)
-    out = []
+    # info competitiva simples: paridade vs oportunidade
+    comp = (b.get("from_competitors") or {}).get("comparison") or []
+    comp_count = defaultdict(int)
+    for compo in comp:
+        for row in compo.get("matrix", []):
+            if row.get("found"):
+                comp_count[(row.get("pillar",""), row.get("sub_benefit",""))] += 1
+
+    grid = []
     for pillar, subs in PILLARS.items():
         for sub in subs:
             key = (pillar, sub)
-            found = idx[key]["found"]
-            evidence = idx[key]["evidence"]
-            # default conservador (não inventa)
-            usage = "temos_muito" if found else "nao_tem"
-            rel   = "gera_valor" if found else "um_pouco_comum"
-            # recomendações conservadoras
-            if not found:
-                rec, prio = "avaliar", "baixa"
+            a = idx.get(key)
+            s = sug_idx.get(key)
+            found = bool(a)
+            approved = bool(a and a.get("approved"))
+            suggested_flag = bool(s)
+
+            # regras conservadoras (sem inventar)
+            if only_approved and not approved:
+                base_usage = "nao_tem"
+                base_rel = "um_pouco_comum"
             else:
-                rec, prio = "proteger", "alta"
-            out.append({
+                base_usage = "temos_muito" if found and (not only_approved or approved) else "nao_tem"
+                base_rel = "gera_valor" if found and (not only_approved or approved) else "um_pouco_comum"
+
+            # competitividade
+            competitors_have = comp_count.get(key, 0)
+            parity = competitors_have >= 2
+            opportunity = competitors_have <= 1
+
+            if not found and not suggested_flag:
+                rec, prio = "avaliar", "baixa"
+            elif found and (approved or not only_approved):
+                if opportunity:   rec, prio = "proteger", "alta"
+                elif parity:      rec, prio = "manter", "média"
+                else:             rec, prio = "aprimorar", "média"
+            else:
+                # sugerido (sem evidência aprovada)
+                rec, prio = "avaliar", "baixa"
+
+            evidence = []
+            if a:
+                evidence.append({
+                    "quote": a.get("evidence",""),
+                    "source": a.get("source",""),
+                    "url": a.get("url",""),
+                    "captured_at": a.get("captured_at","")
+                })
+
+            grid.append({
                 "pillar": pillar,
                 "sub_benefit": sub,
                 "found": found,
-                "usage_level": usage,
-                "relevance_level": rel,
+                "approved": approved,
+                "suggested": suggested_flag,
+                "usage_level": base_usage,
+                "relevance_level": base_rel,
                 "recommendation": rec,
                 "priority": prio,
+                "parity": parity,
+                "opportunity": opportunity,
                 "evidence": evidence
             })
 
     return jsonify({
         "brand": brand,
         "stage": "diferenciais_matrix",
-        "grid": out,
-        "notes": "Sem inventar: os não encontrados permanecem como nao_tem + avaliar."
+        "grid": grid,
+        "notes": "Sem invenção: aprovados conduzem; sugeridos ficam como avaliar."
     }), 200
 
-
 # =========================
-# M3 — Decisão Estratégica
+# M3 — Decisão Estratégica (apenas aprovados; pendentes ficam sem quadrante)
 # =========================
 @app.post("/m3-decisao")
 def m3_decisao():
@@ -262,46 +373,53 @@ def m3_decisao():
     Espera:
     {
       "brand":"...",
-      "from_m2": { "grid":[ { pillar, sub_benefit, found, recommendation, ... }, ... ] }
+      "from_m2": { "grid":[{...}] }
     }
-    Saída: cada item com eixo (nível de uso x relevância) + decisão + argumento.
     """
     b = request.get_json(silent=True) or {}
     brand = b.get("brand","")
     grid = (b.get("from_m2") or {}).get("grid") or []
 
-    def decide(rec, found):
-        rec = (rec or "").lower()
-        if not found:
-            return ("Nao_usamos","Irrelevante_ou_Esperar",
-                    "Não encontrado nas fontes primárias; priorize provar antes de avançar.")
-        if rec in ["proteger"]:
-            return ("Usamos_bem","Potencial_estrategico",
-                    "Proteja o diferencial; evite comoditização com calendário e provas.")
-        if rec in ["aprimorar","reforcar","reforço","reforco"]:
-            return ("Usamos_pouco","Potencial_estrategico",
-                    "Com pouco esforço, capture mais resultado; dê destaque.")
-        if rec in ["desenvolver","implementar"]:
-            return ("Nao_usamos","Potencial_estrategico",
-                    "Maior potencial de diferenciação; planeje e implemente.")
-        if rec in ["manter"]:
-            return ("Usamos_bem","Potencial_tatico",
-                    "Obrigatório/tático; mantenha qualidade e foco em outros itens.")
-        if rec in ["reduzir","eliminar"]:
-            return ("Usamos_bem","Commodity",
-                    "Comoditizado; mínimo esforço ou elimine.")
-        return ("Usamos_pouco","Potencial_tatico","Padrão até termos dados melhores.")
-
     decisions = []
     for row in grid:
-        rec = row.get("recommendation","avaliar")
+        approved = bool(row.get("approved"))
         found = bool(row.get("found"))
-        usage_axis, relevance_axis, arg = decide(rec, found)
+        rec = (row.get("recommendation","") or "").lower()
+
+        if not (approved and found):
+            decisions.append({
+                "pillar": row.get("pillar",""),
+                "sub_benefit": row.get("sub_benefit",""),
+                "decision_usage": "pendente",
+                "decision_relevance": "pendente",
+                "argument": "Pendente de aprovação e/ou evidência."
+            })
+            continue
+
+        # eixos conforme briefing
+        if rec == "proteger":
+            use_axis, rel_axis, arg = "Usamos bem e queremos manter", "Tem potencial estratégico", \
+                "Proteja o diferencial com calendário e provas para evitar comoditização."
+        elif rec in ["aprimorar","reforçar","reforcar","destaque"]:
+            use_axis, rel_axis, arg = "Usamos pouco e queremos melhorar", "Tem potencial estratégico", \
+                "Com pouco esforço é possível extrair mais resultado; dê destaque."
+        elif rec in ["desenvolver","implementar","oportunidade","urgente"]:
+            use_axis, rel_axis, arg = "Ainda não usamos, mas queremos implementar", "Tem potencial estratégico", \
+                "Maior potencial de reforço agora; priorize e implemente."
+        elif rec in ["manter","mínimo esforço","minimo esforço"]:
+            use_axis, rel_axis, arg = "Usamos bem e queremos manter", "Tem potencial tático", \
+                "É obrigatório/tático; mantenha com qualidade."
+        elif rec in ["reduzir","eliminar","ignorar"]:
+            use_axis, rel_axis, arg = "Não iremos usar", "É commodity (mais do obrigatório)", \
+                "Reduza/esvazie para focar no que diferencia."
+        else:
+            use_axis, rel_axis, arg = "Usamos pouco", "Tem potencial tático", "Padrão até termos dados melhores."
+
         decisions.append({
             "pillar": row.get("pillar",""),
             "sub_benefit": row.get("sub_benefit",""),
-            "decision_usage": usage_axis,
-            "decision_relevance": relevance_axis,
+            "decision_usage": use_axis,
+            "decision_relevance": rel_axis,
             "argument": arg
         })
 
@@ -311,19 +429,14 @@ def m3_decisao():
         "decisions": decisions
     }), 200
 
-
 # =========================
-# M4 — Detalhamento
+# M4 — Detalhamento (marca gaps)
 # =========================
 @app.post("/m4-detalhamento")
 def m4_detalhamento():
     """
-    Espera:
-    {
-      "brand":"...",
-      "from_m3": { "decisions":[ { pillar, sub_benefit, ... }, ... ] }
-    }
-    Gera esqueleto completo (sem inventar): campos vazios => marcados em 'missing'.
+    Espera: { "brand":"...", "from_m3": { "decisions":[...] } }
+    Retorna esqueleto completo; onde não há evidência, marca em 'gaps'.
     """
     b = request.get_json(silent=True) or {}
     brand = b.get("brand","")
@@ -344,31 +457,26 @@ def m4_detalhamento():
             "card_em_discussao": name,
             "observacao": ""
         }
-        missing = [k for k,v in item.items() if k not in ["differential","card_em_discussao"] and not v]
+        detail_gaps = [k for k,v in item.items() if k not in ["differential","card_em_discussao"] and not v]
         detailed.append(item)
-        gaps.append({"differential": name, "missing": missing})
+        gaps.append({"differential": name, "missing": detail_gaps})
 
     return jsonify({
         "brand": brand,
         "stage": "detalhamento",
         "detailed": detailed,
         "gaps": gaps,
-        "notes": "Preencha campos vazios com base em evidências aprovadas; não inventar."
+        "notes": "Preencher com evidências aprovadas; nada de inferências."
     }), 200
 
-
 # =========================
-# M5 — Planejamento (Dizer/Mostrar/Fazer)
+# M5 — Planejamento (Dizer/Mostrar/Fazer) — só aprovados
 # =========================
 @app.post("/m5-planejamento")
 def m5_planejamento():
     """
-    Espera:
-    {
-      "brand":"...",
-      "from_m4": { "detailed":[ { differential, ... } ] }
-    }
-    Gera esqueleto de plano. Nada inventado: placeholders para o usuário completar.
+    Espera: { "brand":"...", "from_m4": { "detailed":[...] } }
+    Constrói placeholders de plano; campos vazios permanecem até serem preenchidos com base nas evidências aprovadas.
     """
     b = request.get_json(silent=True) or {}
     brand = b.get("brand","")
@@ -388,9 +496,8 @@ def m5_planejamento():
         "brand": brand,
         "stage": "planejamento",
         "plan": plan,
-        "notes": "Defina mensagens, canais e ações com base nos itens aprovados; sem extrapolações."
+        "notes": "Completar com mensagens, canais e ações baseadas apenas em aprovados."
     }), 200
-
 
 # Local
 if __name__ == "__main__":
